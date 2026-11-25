@@ -59,34 +59,6 @@ npm run dev
 ```
 Opens at `http://localhost:5173`. Make sure the backend is running first.
 
-## The N+1 problem — what to point to in an interview
-
-Naively resolving `Post.author` for a list of N posts fires one query per
-post (`N+1` total: 1 for the post list + N for each author lookup). The same
-applies to `Post.comments`.
-
-This project fixes it with Spring for GraphQL's `@BatchMapping`
-(`ContentController.java`): for a whole page of posts, Spring collects all
-the needed author IDs (or post IDs, for comments) across the *entire*
-response and calls your method **once** with the full list. You do one
-`findAllById(...)` and group results in memory — collapsing what would be
-N queries into 1 per relation, regardless of how many posts are on the page.
-
-Try it yourself: temporarily replace the `@BatchMapping` methods with naive
-per-post `@SchemaMapping` methods that call `userRepository.findById(...)`
-individually, turn on `spring.jpa.show-sql=true`, and watch the query count
-in the console explode as you add more posts. That before/after is the
-single best thing to have ready to explain live.
-
-## What's deliberately left out (documented, not hidden)
-
-- **Auth**: no login/JWT — every mutation trusts the `authorId` passed in.
-  A real app would derive the author from an authenticated session.
-- **Pagination**: uses simple `limit`/`offset`, not cursor-based (Relay-style)
-  pagination — a reasonable next iteration to mention if asked.
-- **Subscriptions**: no real-time updates (would use `graphql-ws` +
-  `@SubscriptionMapping` for live comments — noted as a stretch goal).
-
 ## Deploying to GCP (outline)
 
 1. `backend`: `mvn clean package` → Dockerfile → `gcloud run deploy` (Cloud Run).
